@@ -24,6 +24,7 @@ class L9110 final : public stepper::Stepper, public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
   void set_sleep_when_done(bool sleep_when_done) { this->sleep_when_done_ = sleep_when_done; }
+  void set_step_mode(L9110StepMode step_mode) { this->step_mode_ = step_mode; }
 
  protected:
   void write_step_(int32_t step, int32_t dir);
@@ -34,6 +35,7 @@ class L9110 final : public stepper::Stepper, public Component {
   GPIOPin *pin_b_;
   GPIOPin *pin_c_;
   GPIOPin *pin_d_;
+  L9110StepMode step_mode_{L9110_STEP_MODE_FULL_STEP};
   HighFrequencyLoopRequester high_freq_;
   int32_t current_l9110_pos_{0};
 };

@@ -1,6 +1,7 @@
 #include "l9110.h"
+#include "esphome/core/log.h"
 
-using namespace esphome::l9110;
+namespace esphome::l9110 {
 
 ESPHOME_LOG_TAG(TAG, "l9110.stepper");
 
@@ -27,7 +28,7 @@ void L9110::loop() {
   int32_t dir = this->should_step_();
   if (dir == 0 && this->has_reached_target()) {
     this->high_freq_.stop();
-    if (this->sleep_when_done) {
+    if (this->sleep_when_done_) {
       this->pin_a_->digital_write(false);
       this->pin_b_->digital_write(false);
       this->pin_c_->digital_write(false);
@@ -40,7 +41,7 @@ void L9110::loop() {
     this->current_l9110_pos_ += dir;
   }
 
-  this->write_step_(this->current_l9110_pos_);
+  this->write_step_(this->current_l9110_pos_, dir);
 }
 
 void L9110::dump_config() {
@@ -61,7 +62,7 @@ void L9110::write_step_(int32_t step, int32_t dir) {
   }
   uint8_t total_steps = this->step_mode_ == L9110_STEP_MODE_HALF_STEP ? 8 : 4;
   auto i = this->get_step_sequence_index_(step, total_steps, dir);
-  switch (this->step_mode) {
+  switch (this->step_mode_) {
     case L9110_STEP_MODE_FULL_STEP: {
       this->pin_a_->digital_write(L9110_FULL_STEP_SEQUENCE[i][0]);
       this->pin_b_->digital_write(L9110_FULL_STEP_SEQUENCE[i][1]);
@@ -85,8 +86,9 @@ void L9110::write_step_(int32_t step, int32_t dir) {
 
 uint8_t L9110::get_step_sequence_index_(int32_t step, uint8_t total_steps, int32_t dir) {
   if (dir < 0) {
-    return (total_steps - (step % total_steps)) % total_steps;
+    return (total_steps - 1 - (step % total_steps)) % total_steps;
   } else {
     return step % total_steps;
   }
 }
+}  // namespace esphome::l9110
